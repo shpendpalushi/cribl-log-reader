@@ -1,0 +1,30 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+      "outDir": "./dist",
+      "sourceMap": true,
+      "moduleResolution": "node",
+      "target": "es2020",
+      "lib": ["es2020"],
+      "module": "commonjs",
+      "esModuleInterop": true,
+      "resolveJsonModule": true,
+      "noImplicitAny": true,
+      "baseUrl": ".",
+      "paths": {
+        "*":[
+            "node_modules/*",
+            "src/types"
+        ]
+      },
+      "strictNullChecks": true, // Consider stricter checks
+      "noFallthroughCasesInSwitch": true, // Consider stricter switch cases
+      // "strictBindCallApply": true, // Enable stricter bind/call/apply (optional)
+      // "skipLibCheck": true, // Skip standard library check (trust its types)
+    },
+    "include": [
+      "src/**/*"
+    ],
+    "exclude": ["node_modules", "dist"]
+  }
+  
