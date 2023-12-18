@@ -37,13 +37,6 @@ export async function getLogs(logRequest: LogRequest) {
     });
 
     return customReadable;
-    // return readableStream;
-
-    // await pipeline(logFileStream, lineTransform);
-
-    // const filteredLogLines = filterLogLines(logLines, logRequest);
-    // const reversedLogLines = filteredLogLines.reverse();
-    // return reversedLogLines;
 
 }
 
