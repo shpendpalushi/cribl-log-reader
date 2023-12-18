@@ -21,6 +21,15 @@ For `tests`:
 `.env` - The file for env variables
 `package.json` - There are defined all running commands, such as application build, running, test running, dependencies, etc.
 
-`jest.config.js` - Configuration file for Jest
-`tsconfig.json` - Config file for TypeScript.
+- `jest.config.js` - Configuration file for Jest
+- `tsconfig.json` - Config file for TypeScript.
 
+### How it works:
+
+To start the application run for the root directory of the project `yarn` (or `npm i`) in the first place to have all the dependencies installed. 
+Once you are done with that you can run `npm run dev-server` to test the application locally. 
+`localhost:3000/api/logger?filename={YOUR_FILE_NAME}` you can do a HTTP GET request here with query params as specified in the task and you will be able to see the responses. 
+Another implementation way provided in the solution:
+`localhost:3000/api/logger/worker?filename={YOUR_FILE_NAME}`is can be tested under the given GET Endpoint. It makes use of service workers and parallelization to provide a "more efficient" solution. Remember you have to optimize the number of Workers used to gain in performance.
+On the other hand for reading logs from remote machines:
+``localhost:3000/api/remote-logger?filename={YOUR_FILE_NAME}`` GET endpoint is provided. Remember that to make use of it in the env file you have to specify the path for the Private Key of the machine. Didn't have a machine up for testing but in theory the implementation flow makes sense.

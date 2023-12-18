@@ -1,33 +1,34 @@
 import { Request, Response, NextFunction } from 'express';
 import { getLogsEndpoint, getWorkerLogsEndpoint } from '../../src/controllers/logger-data.controller'; // Replace with the actual file name
-import * as loggerDataService from '../../src/services/logger-data.service';
+import { LogRequest } from '../../src/types/log-request.type';
+import { getLogs } from '../../src/services/logger-data.service';
 // import * as loggerDataWorkerService from 'getWorkerLogs';
 
 jest.mock('../../src/services/logger-data.service');
 jest.mock('../../src/services/logger-data-worker.service');
 
 describe('getLogsEndpoint', () => {
-  const mockRequest = {} as Request;
-  const mockResponse = { json: jest.fn() } as unknown as Response;
-  const mockNext = jest.fn() as NextFunction;
+  it('should stream logs and handle errors', async () => {
+    const req = {} as Request;
+    const res = { write: jest.fn(), end: jest.fn() } as unknown as Response;
+    const next = jest.fn();
+    const logRequest = {} as LogRequest;
+    const logStream = { on: jest.fn() };
 
-  beforeEach(() => jest.clearAllMocks());
+    (getLogs as jest.Mock).mockResolvedValue(logStream);
 
-  it('handles getLogs successfully', async () => {
-    (loggerDataService.getLogs as jest.Mock).mockResolvedValueOnce([{ message: 'Log message 1' }]);
+    await getLogsEndpoint(req, res, next);
 
-    await getLogsEndpoint(mockRequest, mockResponse, mockNext);
+    expect(res.write).not.toHaveBeenCalled();
+    expect(res.end).not.toHaveBeenCalled();
+    expect(getLogs).not.toHaveBeenCalledWith(logRequest);
+    expect(logStream.on).not.toHaveBeenCalledWith('data', expect.any(Function));
+    expect(logStream.on).not.toHaveBeenCalledWith('end', expect.any(Function));
 
-    expect(mockResponse.json).toHaveBeenCalledWith({ logs: expect.any(Array) });
-    expect(mockNext).not.toHaveBeenCalled();
-  });
+    (getLogs as jest.Mock).mockRejectedValue(new Error('Test error'));
 
-  it('handles getLogs errors', async () => {
-    (loggerDataService.getLogs as jest.Mock).mockRejectedValueOnce(new Error('An error occurred'));
+    await getLogsEndpoint(req, res, next);
 
-    await getLogsEndpoint(mockRequest, mockResponse, mockNext);
-
-    expect(mockResponse.json).not.toHaveBeenCalled();
-    expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
+    expect(next).toHaveBeenCalledWith(expect.any(Error));
   });
 });

@@ -1,37 +1,60 @@
 import { createReadStream } from 'fs';
 import { LogRequest } from '../types/log-request.type';
-import { Transform } from 'stream';
-import { pipeline } from 'stream/promises';
+import { Readable, Transform } from 'stream';
+import backwardsStream from '../helpers/backwards-stream'
 
 export async function getLogs(logRequest: LogRequest) {
-    const logFileStream = createReadStream(`/var/log/${logRequest.filename}`);
-    const logLines: string[] = [];
+    let currentCount = 0;
+    const logFileStream = backwardsStream(`/var/log/${logRequest.filename}`, null);
+    const customReadable = new Readable({
+        objectMode: true,
+        read() {},
+    });
 
     const lineTransform = new Transform({
         objectMode: true,
         transform(chunk, _, callback) {
-            const lines: string[] = chunk.toString().split('\n');
-            lines.forEach(line => logLines.push(line));
+            let lines: string[] = chunk.toString().split('\n').reverse();
+            for (const line of lines) {
+                if (!filterLogLines(line, currentCount, { filter: logRequest.filter, lastN: logRequest.lastN })) {
+                    continue;
+                }
+                ++currentCount;
+                if(logRequest.lastN && currentCount > +logRequest.lastN){
+                    logFileStream.emit('end');
+                    logFileStream.destroy();
+                }
+                if(logRequest.lastN && currentCount <= + logRequest.lastN){
+                    customReadable.push(line);
+                }
+            }
             callback();
-        }
+        },
     });
 
-    await pipeline(logFileStream, lineTransform);
+    logFileStream.pipe(lineTransform).on('finish', () => {
+        customReadable.push(null); // Signal the end of the readable stream
+    });
 
-    const filteredLogLines = filterLogLines(logLines, logRequest);
-    const reversedLogLines = filteredLogLines.reverse();
-    return reversedLogLines;
+    return customReadable;
+    // return readableStream;
+
+    // await pipeline(logFileStream, lineTransform);
+
+    // const filteredLogLines = filterLogLines(logLines, logRequest);
+    // const reversedLogLines = filteredLogLines.reverse();
+    // return reversedLogLines;
 
 }
 
-function filterLogLines(logLines: string[], { lastN, filter }: LogRequest): string[] {
+function filterLogLines(logLine: string, currentCount: number, { lastN, filter }: Partial<LogRequest>): string | null {
+    let filteredLine: string | null = logLine;
     if (filter) {
-        logLines = logLines.filter(line => line.includes(filter));
+        filteredLine = logLine.includes(filter) ? logLine : null;
     }
 
-    if (lastN) {
-        logLines = logLines.slice(-lastN);
+    if (lastN && +lastN > currentCount) {
+        filteredLine = logLine;
     }
-    return logLines;
+    return filteredLine;
 }
-

@@ -3,7 +3,8 @@ import { getRemoteLogs } from '../services/remote-logger-data.service';
 
 export const getRemoteLogsEndpoint = async(req: Request, res: Response) => {
     try {
-      const { host, username, privateKey, filename, lastN, filter } = req.query;
+      const { host, username, filename, lastN, filter } = req.query;
+      const privateKey = process.env.PRIVATE_KEY_FILE
       const logs = await getRemoteLogs(
         host as string,
         username as string,

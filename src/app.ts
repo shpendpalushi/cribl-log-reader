@@ -3,6 +3,7 @@ import { LoggerDataRouter } from './routes/logger-data.routes';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import { ErrorHandler } from './middleware/error-handler.middleware';
+import { RemoteLoggerDataRouter } from './routes/remote-logger-data.routes';
 
 export default class ApplicationServer {
     public application = express();
@@ -12,8 +13,15 @@ export default class ApplicationServer {
     }
 
     private initialize() {
+        
+        // Port definition
         this.application.set('port', process.env.PORT || 3000);
+
+        //Route Definitions
         this.application.use('/api/logger', LoggerDataRouter);
+        this.application.use('/api/remote-logger', RemoteLoggerDataRouter);
+
+        //Middleware usages
         this.application.use(ErrorHandler);
     }
 

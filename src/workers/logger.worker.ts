@@ -5,6 +5,7 @@ function getLogData() {
     const { chunk, filter } = workerData;
     const linesData = new TextDecoder().decode(chunk);
     const lines = linesData.toString().split('\n');
+    console.log(lines);
     // @ts-ignore
     const filteredLines = filterLogLines(lines, { filter });
     parentPort?.postMessage(filteredLines);
