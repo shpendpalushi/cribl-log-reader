@@ -16,6 +16,9 @@ export async function getLogs(logRequest: LogRequest) {
         transform(chunk, _, callback) {
             let lines: string[] = chunk.toString().split('\n').reverse();
             for (const line of lines) {
+                if(!logRequest.filter && !logRequest.lastN){
+                    customReadable.push(line);
+                }
                 if (!filterLogLines(line, currentCount, { filter: logRequest.filter, lastN: logRequest.lastN })) {
                     continue;
                 }
